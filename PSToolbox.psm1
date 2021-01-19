@@ -20,7 +20,12 @@ $publicFunctions | ForEach-Object { # Export all of the public functions from th
 
 $moduleName = $PSScriptRoot.Split([System.IO.Path]::DirectorySeparatorChar)[-1]
 $moduleManifest = "$PSScriptRoot\$moduleName.psd1"
-$currentManifest = powershell -NoProfile -Command "Test-ModuleManifest '$moduleManifest' | ConvertTo-Json" | ConvertFrom-Json # Unfortunate hack to test the module manifest for changes without having to reload PowerShell
+if ($PSVersionTable.PSEdition -ne 'Desktop') {
+    $currentManifest = pwsh -NoProfile -Command "Test-ModuleManifest '$moduleManifest' | ConvertTo-Json" | ConvertFrom-Json # Unfortunate hack to test the module manifest for changes without having to reload PowerShell
+}
+else {
+    $currentManifest = powershell -NoProfile -Command "Test-ModuleManifest '$moduleManifest' | ConvertTo-Json" | ConvertFrom-Json # Unfortunate hack to test the module manifest for changes without having to reload PowerShell
+}
 $functionsAdded = $publicFunctions | Where-Object {$_.BaseName -notin $currentManifest.ExportedFunctions.PSObject.Properties.Name}
 $functionsRemoved = $currentManifest.ExportedFunctions.PSObject.Properties.Name | Where-Object {$_ -notin $publicFunctions.BaseName}
 $aliasesAdded = $aliases | Where-Object {$_ -notin $currentManifest.ExportedAliases.PSObject.Properties.Name}
