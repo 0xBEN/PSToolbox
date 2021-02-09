@@ -33,11 +33,11 @@ $aliasesRemoved = $currentManifest.ExportedAliases.PSObject.Properties.Name | Wh
 if ($functionsAdded -or $functionsRemoved -or $aliasesAdded -or $aliasesRemoved) { 
     try {
 
-        if ($aliases) {
+        if ($aliasesAdded) {
             Update-ModuleManifest -Path $moduleManifest -FunctionsToExport $publicFunctions.BaseName -AliasesToExport $aliases -ErrorAction Stop
         }
         else {
-            Update-ModuleManifest -Path $moduleManifest -FunctionsToExport $publicFunctions.BaseName -ErrorAction Stop
+            Update-ModuleManifest -Path $moduleManifest -FunctionsToExport $publicFunctions.BaseName -AliasesToExport @() -ErrorAction Stop
         }
 
     }

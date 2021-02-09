@@ -21,7 +21,7 @@ function Get-DnsRecord {
         $moduleNameParameterAttributes.Mandatory = $true # Parameter is mandatory
         $moduleNameParameterAttributes.Position = 0
         $moduleNameParameterAttributes.ParameterSetName = 'RecordType'
-        $moduleNameParameterValidationSet = [Microsoft.DnsClient.Commands.RecordType]::GetNames([Microsoft.DnsClient.Commands.RecordType]) | Sort-Object # Use the .NET class to enumerate all available record types
+        $moduleNameParameterValidationSet = [Microsoft.DnsClient.Commands.RecordType].GetEnumNames() | Sort-Object # Use the .NET class to enumerate all available record types
         $moduleNameParameterValidationSetAttribute = New-Object System.Management.Automation.ValidateSetAttribute($moduleNameParameterValidationSet)
         $moduleNameParameterAttributesCollection.Add($moduleNameParameterAttributes)
         $moduleNameParameterAttributesCollection.Add($moduleNameParameterValidationSetAttribute)
@@ -44,7 +44,7 @@ function Get-DnsRecord {
             }
 
             if ($PSCmdlet.ParameterSetName -eq 'RecordType') {
-                $recordTypes = [Microsoft.DnsClient.Commands.RecordType].GetEnumNames() | Where-Object {$_ -in $PSBoundParameters['RecordType']} | Sort-Object
+                $recordTypes = $PSBoundParameters['RecordType'] | Sort-Object
             }
             else {
                 $recordTypes = [Microsoft.DnsClient.Commands.RecordType].GetEnumNames() | Sort-Object
@@ -53,8 +53,8 @@ function Get-DnsRecord {
 
                 $type = $_
                 try {
-                    Resolve-DnsName -Name $domainString -Type $type -Server $nameServer[0..4].NameHost -ErrorAction Stop |
-                    Where-Object {$_.Type -eq $type -and $_.QueryType -eq $type}
+                    Resolve-DnsName -Name $domainString -Type $type -Server $nameServer[0..4].NameHost -ErrorAction Stop # |
+                    # Where-Object {$_.Type -eq $type -and $_.QueryType -eq $type}
                 }
                 catch {
                     Out-Null # Silencing stderr
