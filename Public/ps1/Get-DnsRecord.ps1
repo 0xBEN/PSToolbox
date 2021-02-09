@@ -21,7 +21,7 @@ function Get-DnsRecord {
         $moduleNameParameterAttributes.Mandatory = $true # Parameter is mandatory
         $moduleNameParameterAttributes.Position = 0
         $moduleNameParameterAttributes.ParameterSetName = 'RecordType'
-        $moduleNameParameterValidationSet = [Microsoft.DnsClient.Commands.RecordType]::GetEnumNames([Microsoft.DnsClient.Commands.RecordType]) | Sort-Object # Use the .NET class to enumerate all available record types
+        $moduleNameParameterValidationSet = [Microsoft.DnsClient.Commands.RecordType]::GetNames([Microsoft.DnsClient.Commands.RecordType]) | Sort-Object # Use the .NET class to enumerate all available record types
         $moduleNameParameterValidationSetAttribute = New-Object System.Management.Automation.ValidateSetAttribute($moduleNameParameterValidationSet)
         $moduleNameParameterAttributesCollection.Add($moduleNameParameterAttributes)
         $moduleNameParameterAttributesCollection.Add($moduleNameParameterValidationSetAttribute)
