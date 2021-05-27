@@ -65,6 +65,6 @@ function Get-WhoIsInfo {
         }
         $object | Add-Member -MemberType NoteProperty -Name $key -Value $value
     }
-    $object
+    return $object
 
 }
