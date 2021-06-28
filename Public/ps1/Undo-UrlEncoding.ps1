@@ -1,10 +1,32 @@
 function Undo-UrlEncoding {
 
+    <#
+    .SYNOPSIS
+    Decodes URL encoded strings to plaintext.
+
+    .EXAMPLE
+    PS> Undo-UrlEncoding -String 'http://some.site/path?input=cat%20/etc/passwd%20%3E%20local.file'
+
+    http://some.site/path?input=cat /etc/passwd > local.file
+
+    .EXAMPLE
+    
+    PS> Undo-UrlEncoding -String 'cat%20/etc/passwd%20%3E%20local.file'
+
+    cat /etc/passwd > local.file
+
+    .INPUTS
+    System.String
+    
+    .OUTPUTS
+    System.String
+    #>
     [CmdletBinding()]
     param (
         [Parameter(
             Mandatory = $true,
-            Position = 0
+            Position = 0,
+            ValueFromPipeline = $true
         )]
         [ValidateNotNullOrEmpty()]
         [String[]]
@@ -14,22 +36,7 @@ function Undo-UrlEncoding {
 
         $InputString | ForEach-Object {
 
-            $string = $_
-            $uri = [System.Uri]$string
-            if ($uri.Scheme) { # User passed a URI to decode
-
-                $decode = ''
-                $decode += $uri.Scheme + '://' + $uri.host + $uri.LocalPath
-                $decode # Return the decoded URI
-
-            }
-            else { # User passed a string to decode
-
-                $uri = [System.Uri]"http://fake.site/$string"
-                $decode = $uri.LocalPath[1..($uri.LocalPath.Length - 1)] -join '' # Return just the original string decoded
-                $decode
-
-            }
+            [System.Web.HttpUtility]::UrlDecode($_)
 
         }
 
