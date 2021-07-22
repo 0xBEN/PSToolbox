@@ -14,8 +14,12 @@ function ConvertFrom-ByteArray {
     )
     Process {
 
-        $charArray = $ByteArray | ForEach-Object { [char][byte]$_ }
-        return $charArray
+        try {
+            return [char[]]$ByteArray
+        }
+        catch {
+            throw $_
+        }
 
     }
 

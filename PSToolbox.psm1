@@ -7,7 +7,7 @@ $aliases = @()
 $publicFunctions | ForEach-Object { # Export all of the public functions from this module
     
     # The command has already been sourced in above. Query any defined aliases.
-    $alias = Get-Alias -Definition (Get-Command $_.BaseName) -ErrorAction SilentlyContinue 
+    $alias = Get-Alias -Definition $_.BaseName -ErrorAction SilentlyContinue 
     if ($alias) { # If alias string found (see example above)
         $aliases += $alias
         Export-ModuleMember -Function $_.BaseName -Alias $alias
