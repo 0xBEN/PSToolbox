@@ -8,7 +8,7 @@ function ConvertFrom-ByteArray {
             Position = 0,
             ValueFromPipeline = $true
         )]
-        [System.Byte]
+        [System.Byte[]]
         $ByteArray
 
     )
