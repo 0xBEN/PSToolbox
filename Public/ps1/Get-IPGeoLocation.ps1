@@ -34,7 +34,7 @@ function Get-IPGeoLocation {
     )
     process {
 
-        $apiCall = Invoke-RestMethod -Uri "https://tools.keycdn.com/geo.json?host=$($IPV4Address.IPAddressToString)" -Method Get -Headers @{'User-Agent' = 'keycdn-tools:https://tools.keycdn.com'}
+        $apiCall = Invoke-RestMethod -Headers @{'User-Agent' = @{'keycdn-tools' = 'https://null.com'}} -Uri "https://tools.keycdn.com/geo.json?host=$($IPV4Address.IPAddressToString)" -Method Get
         return $apiCall.data.geo
 
     }
