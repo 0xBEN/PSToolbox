@@ -16,7 +16,7 @@ function Out-RotatedString {
         $RotateBy -= 1 # Since chars are 0 indexed
         $lowerChars = 97..122 | ForEach-Object { [char][byte]$_ }
         $lastLowerIndex = $lowerChars.IndexOf($lowerChars[-1])
-        $upperChars = $lowerChars | ForEach-Object { $_.ToString().ToUpper }
+        $upperChars = $lowerChars | ForEach-Object { $_.ToString().ToUpper() }
         $lastUpperIndex = $upperChars.IndexOf($upperChars[-1])
     }
     process {
