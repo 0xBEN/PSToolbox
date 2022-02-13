@@ -30,15 +30,16 @@ function Convert-StringToHash {
         $String | ForEach-Object {
 
             $stringToBytes = $encoder.GetBytes($_)
-            $stringBuilder = New-Object System.Text.StringBuilder # Instantiate the string builder for final output
+			[String]$hash = ''
             $algorithm.ComputeHash($stringToBytes) | ForEach-Object {
 
-                # Parsing each byte and adding to final string output
-                $stringBuilder.Append($_.ToString('x2')) | Out-Null
+				# ComputeHash() method returns raw bytes
+                # Output each byte in hexadecimal and append to string
+				$hash += '{0:X}' -f $_
 
             }
             
-            return $stringBuilder.ToString()
+            return $hash
 
         }
 
