@@ -1,7 +1,7 @@
 function Set-SSHPrivateKeyAcl {
 
     [CmdletBinding()]
-    [Alias(setprivkeyacl)]
+    [Alias('setprivkeyacl')]
     Param (
         [Parameter(
             Mandatory = $true, 
