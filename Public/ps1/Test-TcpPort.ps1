@@ -20,7 +20,7 @@ function Test-TcpPort {
         $Port,
 
         [Parameter(Position = 2)]
-        [ValidateRange(1,1000)]
+        [ValidateRange(1,100)]
         [Int]
         $Threads = 10,
 
