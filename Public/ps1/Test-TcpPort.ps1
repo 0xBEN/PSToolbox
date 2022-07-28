@@ -36,6 +36,7 @@ function Test-TcpPort {
 
             $target = $args[0]
             $ports = $args[1]
+            $timeout = $args[2]
 
             $result = [PSCustomObject]@{
                 'Target' = $target
@@ -46,7 +47,7 @@ function Test-TcpPort {
 
                 $port = $_            
                 $tcpClient = New-Object Net.Sockets.TcpClient
-                if ($tcpClient.ConnectAsync($target, $port).Wait($TimeOutMilliseconds)) {
+                if ($tcpClient.ConnectAsync($target, $port).Wait($timeout)) {
                     $state = 'Open'
                 }
                 else {
@@ -58,6 +59,10 @@ function Test-TcpPort {
                     'Port' = $port
                     'State' = $state
                 }
+
+                $tcpClient.Close()
+                $tcpClient.Dispose()
+
             }
             return $result
 
@@ -73,7 +78,7 @@ function Test-TcpPort {
             $TargetHost[$start..$end] | ForEach-Object {
                 $target = $_
                 Write-Verbose "Processing host: $target"
-                $jobs += Start-Job -Name $target -ScriptBlock $scriptBlock -ArgumentList $target, $Port
+                $jobs += Start-Job -Name $target -ScriptBlock $scriptBlock -ArgumentList $target, $Port, $TimeOutMilliseconds
             }
             $jobs | Wait-Job | Out-Null
 
