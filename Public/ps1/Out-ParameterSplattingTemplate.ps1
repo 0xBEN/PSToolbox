@@ -45,10 +45,10 @@ function Out-ParameterSplattingTemplate {
     }
     process {
 
-        [String[]]$template = "@{`n"
+        [String[]]$template = "@{"
         $parameterNames | ForEach-Object {
             $name = $_
-            $template += "    $name`n"
+            $template += "    $name = `"`""
         }
         $template += '}'
 
@@ -59,5 +59,5 @@ function Out-ParameterSplattingTemplate {
         else { return }
 
     }
-    
+
 }
