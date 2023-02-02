@@ -1,6 +1,7 @@
 function Get-IPGeoLocation {
 
     [CmdletBinding()]
+    [Alias("Get-IPLookup","Get-IPInfo","iplookup","ipinfo")]
     Param (
 
         [Parameter(
