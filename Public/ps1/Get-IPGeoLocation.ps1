@@ -22,10 +22,15 @@ function Get-IPGeoLocation {
         $IPAddress
 
     )
+    begin{
+        $baseUri = "https://rdap.arin.net/registry/ip/"
+        $userAgent = [Microsoft.PowerShell.Commands.PSUserAgent]::Chrome
+    }
     process {
         
         try {
-            Invoke-RestMethod "https://rdap.arin.net/registry/ip/$IPAddress" -ErrorAction Stop
+            $uri = $baseUri + $IPAddress
+            Invoke-RestMethod $uri -UserAgent $userAgent -ErrorAction Stop
         }
         catch {
             throw $_.Exception
