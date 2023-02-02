@@ -13,6 +13,9 @@ function Get-IPGeoLocation {
             if (-not ($_ -as [System.Net.IPAddress])) {
                 throw "Please pass a valid IP address."
             }
+            else {
+                return $true
+            }
                   
         })]
         [System.Net.IPAddress]
