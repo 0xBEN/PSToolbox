@@ -33,7 +33,7 @@ function Undo-UrlEncoding {
         $InputString
     )
     process {
-        $InputString | ForEach-Object { [System.Uri]::UrlDecode($_) }
+        $InputString | ForEach-Object { [System.Uri]::UnescapeDataString($_) }
     }
 
 }
