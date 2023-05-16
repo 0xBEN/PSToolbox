@@ -6,7 +6,11 @@ function Enable-CertificateValidation {
     )
     process {
 
-        if (([System.Management.Automation.PSTypeName]"DoNotValidateCertificates").Type) { [DoNotValidateCertificates]::UnsetCallback() }
+        if ([System.Net.ServicePointManager]::ServerCertificateValidationCallback) { 
+        
+            [System.Net.ServicePointManager]::ServerCertificateValidationCallback = $null
+            
+        }
     
     }
 
