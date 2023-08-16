@@ -26,10 +26,10 @@ if ($PSVersionTable.PSEdition -ne 'Desktop') {
 else {
     $currentManifest = powershell -NoProfile -Command "Test-ModuleManifest '$moduleManifest'" # Unfortunate hack to test the module manifest for changes without having to reload PowerShell
 }
-$functionsAdded = $publicFunctions | Where-Object {$_.BaseName -notin $currentManifest.ExportedFunctions.PSObject.Properties.Name}
-$functionsRemoved = $currentManifest.ExportedFunctions.PSObject.Properties.Name | Where-Object {$_ -notin $publicFunctions.BaseName}
-$aliasesAdded = $aliases | Where-Object {$_ -notin $currentManifest.ExportedAliases.PSObject.Properties.Name}
-$aliasesRemoved = $currentManifest.ExportedAliases.PSObject.Properties.Name | Where-Object {$_ -notin $aliases}
+$functionsAdded = $publicFunctions | Where-Object {$_.BaseName -notin $currentManifest.ExportedFunctions.Keys}
+$functionsRemoved = $currentManifest.ExportedFunctions.Keys | Where-Object {$_ -notin $publicFunctions.BaseName}
+$aliasesAdded = $aliases | Where-Object {$_ -notin $currentManifest.ExportedAliases.Keys}
+$aliasesRemoved = $currentManifest.ExportedAliases.Keys | Where-Object {$_ -notin $aliases}
 if ($functionsAdded -or $functionsRemoved -or $aliasesAdded -or $aliasesRemoved) { 
     try {
 
