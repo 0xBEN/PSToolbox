@@ -1,17 +1,15 @@
-$moduleName = $PSScriptRoot.Split([System.IO.Path]::DirectorySeparatorChar)[-1]
-$moduleManifest = "$PSScriptRoot\$moduleName.psd1"
+$directorySeparator = [System.IO.Path]::DirectorySeparatorChar
+$moduleName = $PSScriptRoot.Split($directorySeparator)[-1]
+$moduleManifest = $PSScriptRoot + $directorySeparator + $moduleName + '.psd1'
+$publicFunctionsPath = $PSScriptRoot + $directorySeparator + 'Public' + $directorySeparator + 'ps1'
+$privateFunctionsPath = $PSScriptRoot + $directorySeparator + 'Private' + $directorySeparator + 'ps1'
 $currentManifest = Test-ModuleManifest $moduleManifest
 
 $aliases = @()
-$publicFunctions = Get-ChildItem -Path "$PSScriptRoot\Public\ps1" | Where-Object {$_.Extension -eq '.ps1'}
-$privateFunctions = Get-ChildItem -Path "$PSScriptRoot\Private\ps1" | Where-Object {$_.Extension -eq '.ps1'}
+$publicFunctions = Get-ChildItem -Path $publicFunctionsPath | Where-Object {$_.Extension -eq '.ps1'}
+$privateFunctions = Get-ChildItem -Path $privateFunctionsPath | Where-Object {$_.Extension -eq '.ps1'}
 $publicFunctions | ForEach-Object { . $_.FullName }
 $privateFunctions | ForEach-Object { . $_.FullName }
-
-$functionsAdded = $publicFunctions | Where-Object {$_.BaseName -notin $currentManifest.ExportedFunctions.Keys}
-$functionsRemoved = $currentManifest.ExportedFunctions.Keys | Where-Object {$_ -notin $publicFunctions.BaseName}
-$aliasesAdded = $aliases | Where-Object {$_ -notin $currentManifest.ExportedAliases.Keys}
-$aliasesRemoved = $currentManifest.ExportedAliases.Keys | Where-Object {$_ -notin $aliases}
 
 $publicFunctions | ForEach-Object { # Export all of the public functions from this module
 
@@ -26,6 +24,11 @@ $publicFunctions | ForEach-Object { # Export all of the public functions from th
     }
 
 }
+
+$functionsAdded = $publicFunctions | Where-Object {$_.BaseName -notin $currentManifest.ExportedFunctions.Keys}
+$functionsRemoved = $currentManifest.ExportedFunctions.Keys | Where-Object {$_ -notin $publicFunctions.BaseName}
+$aliasesAdded = $aliases | Where-Object {$_ -notin $currentManifest.ExportedAliases.Keys}
+$aliasesRemoved = $currentManifest.ExportedAliases.Keys | Where-Object {$_ -notin $aliases}
 
 if ($functionsAdded -or $functionsRemoved -or $aliasesAdded -or $aliasesRemoved) {
 
