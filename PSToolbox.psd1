@@ -79,7 +79,7 @@ FunctionsToExport = 'Convert-DecimalToIPAddress', 'Convert-IPAddressToDecimal',
                'Enable-CertificateValidation', 'Find-WordInFile', 'Get-DnsRecord', 
                'Get-DotNetClassName', 'Get-HostOperatingSystem', 
                'Get-HostPublicIPAddress', 'Get-IPGeoLocation', 
-               'Get-PSElevationStatus', 'Get-RandomPassword', 'Get-SecurityTrailsApiQuota', 'Get-SecurityTrailsSubdomains'
+               'Get-PSElevationStatus', 'Get-RandomPassword', 'Get-SecurityTrailsApiQuota', 'Get-SecurityTrailsSubdomains',
                'Get-ThisPowerShellProcess', 'Get-WhoIsInfo', 'Join-Substrings', 
                'New-AdminCredential', 'Out-ParameterSplattingTemplate', 
                'Out-RandomString', 'Out-ReversedString', 'Out-RotatedString', 
