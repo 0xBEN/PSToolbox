@@ -39,25 +39,44 @@ function Get-WhoIsInfo {
 
         if ($PSCmdlet.ParameterSetName -eq 'IPAddress') {
             $baseUri = 'https://rdap.arin.net/registry/ip/'
-            $inputObject = $IPAddress
         }
         else {
             $baseUri = 'https://rdap.verisign.com/com/v1/domain/'
-            $inputObject = $Domain
         }
 
     }
     process {
 
-        $inputObject | ForEach-Object {
-
-            try {
-                $uri = $baseUri + $_
-                Write-Verbose $uri
-                Invoke-RestMethod $uri
+        if ($PSCmdlet.ParameterSetName -eq 'IPAddress') {
+            
+            $IPAddress | ForEach-Object {
+                
+                try {
+                    $uri = $baseUri + $_
+                    Invoke-RestMethod $uri
+                }
+                catch {
+                    $_ | Write-Error
+                }
+    
             }
-            catch {
-                $_ | Write-Error
+
+        }
+        else {
+
+            $Domain | ForEach-Object {
+                
+                try {
+                    $verisign = $baseUri + $_
+                    $verisignData = Invoke-RestMethod $verisign
+
+                    $uri = $verisignData.links[1].value
+                    Invoke-RestMethod $uri
+                }
+                catch {
+                    $_ | Write-Error
+                }
+    
             }
 
         }
