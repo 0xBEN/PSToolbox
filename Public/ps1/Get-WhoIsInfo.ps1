@@ -63,7 +63,7 @@ function Get-WhoIsInfo {
             if ($key -eq 'Updated') { $key = 'OrgRegUpdated' }
             if ($key -eq 'Ref') { $key = 'OrgRef' }
         }
-        $object | Add-Member -MemberType NoteProperty -Name $key -Value $value
+        $object | Add-Member -MemberType NoteProperty -Name $key -Value $value -Force
     }
     return $object
 
