@@ -2,13 +2,22 @@ function Get-HostPublicIPAddress {
 
     [CmdletBinding()]
     Param ()
-    begin { }
+    begin { 
+        $uri = 'https://accountws.arin.net/public/rest/myip'
+        $headers = @{
+            'Content-Type' = 'application/json'
+        }
+        $method = 'GET'
+    }
     process {
 
         try {
-            $webRequest = Invoke-WebRequest https://cloudflare.com/cdn-cgi/trace -UseBasicParsing
-            $ip = $webRequest.Content.Split("`n") | Where-Object {$_ -like 'ip=*'}
-            $ip.Split('=')[1]
+            $parameters = @{
+                'Method' = $method
+                'Headers' = $headers
+                'Uri' = $uri
+            }
+            Invoke-RestMethod @parameters
         }
         catch {
             throw $_
