@@ -7,7 +7,7 @@ function Get-HostPublicIPAddress {
 
         try {
             $webRequest = Invoke-WebRequest https://cloudflare.com/cdn-cgi/trace -UseBasicParsing
-            $ip = $webRequest | Where-Object {$_ -like 'ip=*'}
+            $ip = $webRequest.Split("`n") | Where-Object {$_ -like 'ip=*'}
             $ip.Split('=')[1]
         }
         catch {
