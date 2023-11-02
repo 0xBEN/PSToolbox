@@ -15,7 +15,24 @@ function Get-WhoIsInfo {
             Mandatory = $true,
             ParameterSetName = 'Domain'
         )]
-        [ValidateScript({try { Resolve-DnsName $_ -ErrorAction Stop } catch { throw $_ } })]
+        [ValidateScript({
+
+            $testInput = $_
+            try { 
+                
+                if ($testInput -as [IPAddress]) {
+                    throw "You have provided an IP address for the Domain parameter set."
+                }
+                else {
+                    Resolve-DnsName $testInput -ErrorAction Stop 
+                }
+                
+            } 
+            catch { 
+                throw $_ 
+            } 
+
+        })]
         [String[]]$Domain
     )
     begin {
