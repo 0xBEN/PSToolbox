@@ -1,24 +1,20 @@
 function Get-HostPublicIPAddress {
 
-    [CmdletBinding(DefaultParameterSetName = 'ipv4')]
-    Param (
-
-        [Parameter(ParameterSetName = 'ipv4')]
-        [switch]
-        $ReturnIPv4,
-
-        [Parameter(ParameterSetName = 'ipv6')]
-        [switch]
-        $ReturnIPv6
-
-    )
+    [CmdletBinding()]
+    Param ()
+    begin { }
     process {
 
-        if ($PSCmdlet.ParameterSetName -eq 'ipv4') { $apiCall = Invoke-RestMethod -Uri 'https://api.ipify.org' -Method Get }
-        else { $apiCall = Invoke-RestMethod -Uri 'https://api6.ipify.org' -Method Get }
-
-        return $apiCall.ToString()
-
+        try {
+            $webRequest = Invoke-WebRequest https://cloudflare.com/cdn-cgi/trace -UseBasicParsing
+            $ip = $webRequest | Where-Object {$_ -like 'ip=*'}
+            $ip.Split('=')[1]
+        }
+        catch {
+            throw $_
+        }
+        
     }
+    end {}
 
 }
