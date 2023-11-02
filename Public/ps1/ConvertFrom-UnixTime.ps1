@@ -1,6 +1,7 @@
 function ConvertFrom-UnixTime {
 
     [CmdletBinding()]
+    [Alias('ConvertFrom-EpochTime')]
     Param (
 
         [Parameter(
@@ -8,7 +9,7 @@ function ConvertFrom-UnixTime {
             Position = 0,
             ValueFromPipeline = $true
         )]
-        [Int]
+        [Double[]]
         $TotalSeconds
 
     )
@@ -21,6 +22,7 @@ function ConvertFrom-UnixTime {
 
         $TotalSeconds | ForEach-Object {
 
+            Write-Verbose "Converting seconds to local timestamp"
             return $unixEpoch.AddSeconds($_)
 
         }
