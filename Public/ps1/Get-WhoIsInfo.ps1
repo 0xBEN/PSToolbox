@@ -1,70 +1,51 @@
 function Get-WhoIsInfo {
     
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName = 'IPAddress')]
     Param (
         [Parameter(
             Position= 0,
-            Mandatory = $true
+            Mandatory = $true,
+            ParameterSetName = 'IPAddress'
         )]
         [ValidateScript({[IPAddress]::Parse($_)})]
-        [String[]]
-        $IPAddress
+        [String[]]$IPAddress,
+
+        [Parameter(
+            Position= 0,
+            Mandatory = $true,
+            ParameterSetName = 'Domain'
+        )]
+        [ValidateScript({try { Resolve-DnsName $_ -ErrorAction Stop } catch { throw $_ } })]
+        [String[]]$Domain
     )
-    $uri = 'https://who.is/whois-ip/ip-address/'
-    $r = Invoke-WebRequest ($uri + $IPAddress) -UseBasicParsing
-    $r = $r.Content -split '>' -replace '<.*' | 
-        Select-String -Pattern "^\w+\:.*" | 
-        ForEach-Object { $_ -replace '\:\s{1,}', '::' }
-    $r = $r.Split("`n") | Where-Object { -not [string]::IsNullOrWhiteSpace($_) -and -not [string]::IsNullOrEmpty($_) }
-    $object = New-Object PSObject
-    $addressLineCount = 0
-    $networkCommentLineCount = 0
-    $orgCommentLineCount = 0
-    $r | ForEach-Object {
-        $split = $_ -split '::'
-        $key = $split[0]
-        $value = $split[-1]
-        if ($key -eq 'NetRange') { $monitor = 'Network' }
-        if ($key -eq 'OrgName') { $monitor = 'Organization' }
-        if ($monitor -eq 'Network') {
-            if ($key -eq 'RegDate') { $key = 'NetRegDate' }
-            if ($key -eq 'Updated') { $key = 'NetRegUpdated' }
-            if ($key -eq 'Ref') {$key = 'NetRef'}
-            if ($key -eq 'Comment') {
-                if ($networkCommentLineCount -gt 0) {
-                    $key = "NetCommentContinued$networkCommentLineCount"
-                }
-                else {
-                    $key = 'NetComment'
-                }
-                $networkCommentLineCount++
-            }
+    begin {
+
+        if ($PSCmdlet.ParameterSetName -eq 'IPAddress') {
+            $baseUri = 'https://rdap.arin.net/registry/ip/'
+            $inputObject = $IPAddress
         }
-        if ($monitor -eq 'Organization') {
-            if ($key -eq 'Address') {
-                if ($addressLineCount -gt 0) {
-                    $key = "OrgAddressContinued$addressLineCount"
-                }
-                else {
-                    $key = 'OrgAddress'
-                }
-                $addressLineCount++
-            }
-            if ($key -eq 'Comment') {
-                if ($networkCommentLineCount -gt 0) {
-                    $key = "OrgCommentContinued$orgCommentLineCount"
-                }
-                else {
-                    $key = 'OrgComment'
-                }
-                $orgCommentLineCount++
-            }
-            if ($key -eq 'RegDate') { $key = 'OrgRegDate' }
-            if ($key -eq 'Updated') { $key = 'OrgRegUpdated' }
-            if ($key -eq 'Ref') { $key = 'OrgRef' }
+        else {
+            $baseUri = 'https://rdap.verisign.com/com/v1/domain/'
+            $inputObject = $Domain
         }
-        $object | Add-Member -MemberType NoteProperty -Name $key -Value $value -Force
+
     }
-    return $object
+    process {
+
+        $inputObject | ForEach-Object {
+
+            try {
+                $uri = $baseUri + $_
+                Write-Verbose $uri
+                Invoke-RestMethod $uri
+            }
+            catch {
+                $_ | Write-Error
+            }
+
+        }
+
+    }
+    end { }
 
 }
