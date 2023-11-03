@@ -37,6 +37,7 @@ function Get-WhoIsInfo {
     )
     begin {
 
+        $userAgent = [Microsoft.PowerShell.Commands.PSUserAgent]::Chrome
         if ($PSCmdlet.ParameterSetName -eq 'IPAddress') {
             $baseUri = 'https://rdap.arin.net/registry/ip/'
         }
@@ -53,7 +54,7 @@ function Get-WhoIsInfo {
                 
                 try {
                     $uri = $baseUri + $_
-                    Invoke-RestMethod $uri
+                    Invoke-RestMethod $uri -UserAgent $userAgent
                 }
                 catch {
                     $_ | Write-Error
@@ -71,7 +72,7 @@ function Get-WhoIsInfo {
                     $verisignData = Invoke-RestMethod $verisign
 
                     $uri = $verisignData.links[1].value
-                    Invoke-RestMethod $uri
+                    Invoke-RestMethod $uri -UserAgent $userAgent
                 }
                 catch {
                     $_ | Write-Error
