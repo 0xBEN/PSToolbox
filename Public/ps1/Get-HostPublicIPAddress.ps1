@@ -8,6 +8,7 @@ function Get-HostPublicIPAddress {
             'Content-Type' = 'application/json'
         }
         $method = 'GET'
+        $userAgent = [Microsoft.PowerShell.Commands.PSUserAgent]::Chrome
     }
     process {
 
@@ -16,6 +17,7 @@ function Get-HostPublicIPAddress {
                 'Method' = $method
                 'Headers' = $headers
                 'Uri' = $uri
+                'UserAgent' = $userAgent
             }
             Invoke-RestMethod @parameters
         }
