@@ -5,13 +5,13 @@ function Undo-UrlEncoding {
     Decodes URL encoded strings to plaintext.
 
     .EXAMPLE
-    PS> Undo-UrlEncoding -String 'http://some.site/path?input=cat%20/etc/passwd%20%3E%20local.file'
+    PS> Undo-UrlEncoding -InputString 'http://some.site/path?input=cat%20/etc/passwd%20%3E%20local.file'
 
     http://some.site/path?input=cat /etc/passwd > local.file
 
     .EXAMPLE
     
-    PS> Undo-UrlEncoding -String 'cat%20/etc/passwd%20%3E%20local.file'
+    PS> Undo-UrlEncoding -InputString 'cat%20/etc/passwd%20%3E%20local.file'
 
     cat /etc/passwd > local.file
 
