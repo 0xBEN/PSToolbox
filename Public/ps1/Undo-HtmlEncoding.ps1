@@ -5,9 +5,14 @@ function Undo-HtmlEncoding {
     Decodes HTML encoded strings to plaintext.
 
     .EXAMPLE
-    PS> Undo-HtmlEncoding -InputString '&#x54;&#x65;&#x73;&#x74;&#x20;&#x73;&#x74;&#x72;&#x69;&#x6E;&#x67;&#x20;&#x26;'
+    PS> Undo-HtmlEncoding -InputString '&#x3C;&#x3E;&#x20;&#x74;&#x65;&#x73;&#x74;&#x20;&#x26;&#x20;&#x22;'
 
-    http://some.site/path?input=cat /etc/passwd > local.file
+    <> test & "
+
+    .EXAMPLE
+    PS> Undo-HtmlEncoding -InputString '&lt;&gt; test &amp; &quot;'
+
+    <> test & "
 
     .INPUTS
     System.String
