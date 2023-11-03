@@ -35,6 +35,9 @@ function Out-HtmlEncoding {
 
             $string = $_
             if ($EncodeAllCharacters) {
+                # Encodes all characters in the string as hexadecimal-encoded entities
+                # Mimicks the functionality of [System.Text.Encodings.Web.HtmlEncoder]
+                # This class is only available in PowerShell Core, so do it this way to preserve backwards functionality
                 $charArray = $string.ToCharArray()
                 $hexByteArray = $charArray | ForEach-Object { '{0:X}' -f [byte]$_ }
                 $htmlEncodedHexByteArray = $hexByteArray | ForEach-Object { "&#x$_;" }
