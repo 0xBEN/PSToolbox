@@ -5,9 +5,14 @@ function Out-HtmlEncoding {
     Converts input text into it's HTML encoded equivalent.
 
     .EXAMPLE
-    PS> Out-HtmlEncoding -InputString ' '
+    PS> Out-HtmlEncoding '<> test & "'
 
-    &#x20;
+    &lt;&gt; test &amp; &quot;
+
+    .EXAMPLE
+    PS> Out-HtmlEncoding '<> test & "' -EncodeAllCharacters
+
+    &#x3C;&#x3E;&#x20;&#x74;&#x65;&#x73;&#x74;&#x20;&#x26;&#x20;&#x22;
 
     .INPUTS
     System.String
