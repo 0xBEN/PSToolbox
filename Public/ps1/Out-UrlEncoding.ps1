@@ -39,17 +39,21 @@ function Out-UrlEncoding {
 
         $InputString | ForEach-Object {
 
-            $isUri = $_ -as [Uri] | Select-Object -ExpandProperty IsAbsoluteUri
-            if ($isUri) { # User passed a URI to encode
-                [System.UriBuilder]::new($_).Uri.AbsoluteUri
-            }
-            elseif ($EncodeAllCharacters) {            
+            if ($EncodeAllCharacters) {            
                 [System.Web.HttpUtility]::UrlEncode($_)                
             }
-            else { # User passed a string to encode
-                [System.Web.HttpUtility]::UrlEncode($_)
-            }
+            else {
+            
+                $isUri = $_ -as [Uri] | Select-Object -ExpandProperty IsAbsoluteUri
+                if ($isUri) { # User passed a URI to encode
+                    [System.UriBuilder]::new($_).Uri.AbsoluteUri
+                }
+                else { # User passed a string to encode
+                    [System.Web.HttpUtility]::UrlEncode($_)
+                }
 
+            }
+            
         }
 
     }
