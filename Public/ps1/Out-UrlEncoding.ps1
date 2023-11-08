@@ -12,7 +12,7 @@ function Out-UrlEncoding {
     .EXAMPLE
     If you are doing some input fuzzing against a web app and want to encode the URI before submitting.
 
-    PS> Out-UrlEncoding -InputString 'http://some.site/path?input=cat /etc/passwd > local.file'
+    PS> Out-UrlEncoding -InputString 'http://some.site/path?input=cat /etc/passwd'
 
     http://some.site/path?input=cat%20/etc/passwd%20%3E%20local.file
 
@@ -30,23 +30,24 @@ function Out-UrlEncoding {
             ValueFromPipeline = $true
         )]
         [ValidateNotNullOrEmpty()]
-        [String[]]
-        $InputString
+        [String[]]$InputString,
+
+        [Parameter()]
+        [Switch]$EncodeAllCharacters
     )
     process {
 
         $InputString | ForEach-Object {
 
-            $isUri = [System.Uri]$_ | Select-Object -ExpandProperty Scheme
+            $isUri = $_ -as [Uri] | Select-Object -ExpandProperty IsAbsoluteUri
             if ($isUri) { # User passed a URI to encode
-
                 [System.UriBuilder]::new($_).Uri.AbsoluteUri
-
+            }
+            elseif ($EncodeAllCharacters) {            
+                [System.Web.HttpUtility]::UrlEncode($_)                
             }
             else { # User passed a string to encode
-
-                [System.Text.Encodings.Web.UrlEncoder]::Default.Encode($_)
-
+                [System.Web.HttpUtility]::UrlEncode($_)
             }
 
         }
