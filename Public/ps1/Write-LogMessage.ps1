@@ -55,7 +55,7 @@ function Write-LogMessage {
             HelpMessage="The name of the application generating the log."
         )]
         [ValidateNotNullOrEmpty()]
-        [String]$Tag 
+        [String]$Tag,
         
 	    [Parameter(Position = 3, Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
