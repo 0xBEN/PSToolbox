@@ -51,13 +51,13 @@ function Write-LogMessage {
         
         [Parameter(
             Position = 2,
-            Manadatory = $true,
+            Mandatory = $true,
             HelpMessage="The name of the application generating the log."
         )]
         [ValidateNotNullOrEmpty()]
         [String]$Tag,
-        
-	    [Parameter(Position = 3, Mandatory = $true)]
+
+	[Parameter(Position = 3, Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [String]$Message
     )
