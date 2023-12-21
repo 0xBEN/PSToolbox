@@ -7,8 +7,7 @@ function Test-TcpPort {
             Position = 0,
             HelpMessage = 'Enter an IP address, hostname, or FQDN.'
         )]
-        [String[]]
-        $TargetHost,
+        [String[]]$TargetHost,
 
         [Parameter(
             Mandatory = $true,
@@ -16,80 +15,113 @@ function Test-TcpPort {
             HelpMessage = 'Enter a TCP port between 1 and 65535. It may be a single port, comma separated, or a range; or a combination.'
         )]
         [ValidateRange(1,65535)]
-        [Int[]]
-        $Port,
+        [Int[]]$Port,
 
         [Parameter(Position = 2)]
-        [ValidateRange(1,100)]
-        [Int]
-        $Threads = 10,
+        [ValidateRange(1,10)]
+        [Int]$ParallelHosts = 5,
 
         [Parameter(Position = 3)]
+        [ValidateRange(1,10000)]
+        [Int]$ParallelPorts = 100,
+
+        [Parameter(Position = 4)]
         [ValidateRange(100,10000)]
-        [Int]
-        $TimeOutMilliseconds = 1000
+        [Int]$TimeoutMilliseconds = 100
     )
-    begin {
+     begin {
 
-        $jobs = @()
-        $scriptBlock = {
+        if ($ParallelPorts -gt $Port.Count) { $ParallelPorts = $Port.Count }
+        if ($ParallelPorts -gt $TargetHost.Count) { $ParallelHosts = $TargetHost.Count }
+        
+        $hostJobs = @()
+        $hostScriptBlock = {
 
-            $target = $args[0]
-            $ports = $args[1]
-            $timeout = $args[2]
+            param (
+                $thisTarget,
+                $ports,
+                $timeout,
+                $numThreads
+            )
 
-            $result = [PSCustomObject]@{
-                'Target' = $target
-                'Ports' = @()
-            }
+            $nestedPortScriptBlock = {
+                param (
+                    $nestedTarget,
+                    $port,
+                    $nestedTimeout
+                )
 
-            $ports | ForEach-Object {
-
-                $port = $_            
                 $tcpClient = New-Object Net.Sockets.TcpClient
-                if ($tcpClient.ConnectAsync($target, $port).Wait($timeout)) {
+                if ($tcpClient.ConnectAsync($nestedTarget, $port).Wait($nestedTimeout)) {
                     $state = 'Open'
                 }
                 else {
                     $state = 'Closed'
                 }
 
-                $result.Ports += [PSCustomObject]@{
+                $tcpClient.Close()
+                $tcpClient.Dispose()
+
+                return [PSCustomObject]@{
                     'Protocol' = 'TCP'
                     'Port' = $port
                     'State' = $state
                 }
+            }
 
-                $tcpClient.Close()
-                $tcpClient.Dispose()
+            $result = [PSCustomObject]@{
+                'Host' = $thisTarget
+                'Ports' = @()
+            }
+            
+            for ($portIndex = 0; $portIndex -lt $ports.Count; $portIndex += $numThreads) {
+                $counter = 0
+                $portJobs = @()
+                $portStart = $portIndex
+                $portEnd = ($portIndex + $numThreads) - 1
 
+                $ports[$portStart..$portEnd] | ForEach-Object {
+                    $port = $_
+                    $portJobParameters = @{
+                        ScriptBlock = $nestedPortScriptBlock
+                        ArgumentList = @($thisTarget, $port, $timeout)
+                    }
+                    $portJobs += Start-Job @portJobParameters
+                }
+                
+                $portResults = $portJobs | 
+                    Wait-Job | 
+                    Receive-Job | 
+                    Select-Object -Property * -ExcludeProperty PSComputerName, PSShowComputerName, RunspaceId
+                    
+                $result.Ports += $portResults
             }
             return $result
-
         }
-
+        
     }
     process {
 
-        for ($i = 0; $i -le $TargetHost.Count; $i += $Threads) {
-            
-            $start = $i
-            $end = ($i + $Threads) - 1
-            $TargetHost[$start..$end] | ForEach-Object {
-                $target = $_
-                Write-Verbose "Processing host: $target"
-                $jobs += Start-Job -Name $target -ScriptBlock $scriptBlock -ArgumentList $target, $Port, $TimeOutMilliseconds
-            }
-            $jobs | Wait-Job | Out-Null
+        for ($hostIndex = 0; $hostIndex -lt $TargetHost.Count; $hostIndex += $ParallelHosts) {
+            $hostStart = $hostIndex
+            $hostEnd = ($hostIndex + $ParallelHosts) - 1
 
+            $TargetHost[$hostStart..$hostEnd] | ForEach-Object {
+                $target = $_
+                Write-Verbose "Starting scan of host: $target"
+                $hostJobParameters = @{
+                    Name = $target
+                    ScriptBlock = $hostScriptBlock
+                    ArgumentList = @($target, $Port, $TimeoutMilliseconds, $ParallelPorts)
+                }
+                $hostJobs += Start-Job @hostJobParameters
+            }
+            $hostJobs | Wait-Job | Out-Null
         }
 
     }
     end {
-
-        $jobs | Receive-Job | Select-Object -Property * -ExcludeProperty PSComputerName, PSShowComputerName, RunspaceId
-        $jobs | Remove-Job -Force
-
+        $hostJobs | Receive-Job | Select-Object -Property * -ExcludeProperty RunspaceId
+        $hostJobs | Remove-Job -Force
     }
-    
 }
