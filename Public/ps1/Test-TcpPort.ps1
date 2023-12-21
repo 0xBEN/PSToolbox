@@ -22,37 +22,41 @@ function Test-TcpPort {
         [Int]$ParallelHosts = 5,
 
         [Parameter(Position = 3)]
-        [ValidateRange(1,10000)]
+        [ValidateRange(1,1000)]
         [Int]$ParallelPorts = 100,
 
         [Parameter(Position = 4)]
         [ValidateRange(100,10000)]
         [Int]$TimeoutMilliseconds = 100
     )
-     begin {
+    begin {
 
-        if ($ParallelPorts -gt $Port.Count) { $ParallelPorts = $Port.Count }
-        if ($ParallelPorts -gt $TargetHost.Count) { $ParallelHosts = $TargetHost.Count }
+        $TargetHost = $TargetHost | Select-Object -Unique
+        $Port = $Port | Select-Object -Unique
+        #if ($ParallelPorts -gt $Port.Count) { $ParallelPorts = $Port.Count }
+        #if ($ParallelPorts -gt $TargetHost.Count) { $ParallelHosts = $TargetHost.Count }
         
         $hostJobs = @()
+        # ScriptBlock for processing hosts to scan
         $hostScriptBlock = {
 
             param (
-                $thisTarget,
-                $ports,
-                $timeout,
+                $scriptBlockTarget,
+                $scriptBlockPorts,
+                $scriptBlockTimeout,
                 $numThreads
             )
-
-            $nestedPortScriptBlock = {
+            # Nested ScriptBlock as each host runspace will
+            # Have child runspaces for scanning ports
+            $portScriptBlock = {
                 param (
-                    $nestedTarget,
-                    $port,
-                    $nestedTimeout
+                    $runspaceTarget,
+                    $runspacePort,
+                    $runspaceTimeout
                 )
 
                 $tcpClient = New-Object Net.Sockets.TcpClient
-                if ($tcpClient.ConnectAsync($nestedTarget, $port).Wait($nestedTimeout)) {
+                if ($tcpClient.ConnectAsync($runspaceTarget, $runspacePort).Wait($runspaceTimeout)) {
                     $state = 'Open'
                 }
                 else {
@@ -64,48 +68,51 @@ function Test-TcpPort {
 
                 return [PSCustomObject]@{
                     'Protocol' = 'TCP'
-                    'Port' = $port
+                    'Port' = $runspacePort
                     'State' = $state
                 }
             }
 
-            $result = [PSCustomObject]@{
-                'Host' = $thisTarget
+            $hostObject = [PSCustomObject]@{
+                'Host' = $scriptBlockTarget
                 'Ports' = @()
             }
-            
-            for ($portIndex = 0; $portIndex -lt $ports.Count; $portIndex += $numThreads) {
-                $counter = 0
+
+            # Slice the number of ports into smaller chunks based on the user thread input
+            # That way if the user passes all 65,535 TCP ports, we aren't waiting for all of them to queue into the runspace pool
+            for ($portIndex = 0; $portIndex -lt $scriptBlockPorts.Count; $portIndex += $numThreads) {
+                # Nested runspace pool for port scanning
+                $portRunspacePool = [runspacefactory]::CreateRunspacePool(1, $numThreads)
+                $portRunspacePool.Open()
                 $portJobs = @()
                 $portStart = $portIndex
                 $portEnd = ($portIndex + $numThreads) - 1
-
-                $ports[$portStart..$portEnd] | ForEach-Object {
+                # Take the first chunk of ports and queue them in the runspace pool
+                $scriptBlockPorts[$portStart..$portEnd] | ForEach-Object {
                     $port = $_
-                    $portJobParameters = @{
-                        ScriptBlock = $nestedPortScriptBlock
-                        ArgumentList = @($thisTarget, $port, $timeout)
-                    }
-                    $portJobs += Start-Job @portJobParameters
+                    $portPoshInstance = [powershell]::Create()
+                    $portPoshInstance.RunspacePool = $portRunspacePool
+                    $portPoshInstance.AddScript($portScriptBlock) | Out-Null
+                    $portPoshInstance.AddArgument($scriptBlockTarget) | Out-Null
+                    $portPoshInstance.AddArgument($port) | Out-Null
+                    $portPoshInstance.AddArgument($scriptBlockTimeout) | Out-Null
+                    $portJobs += $portPoshInstance
                 }
-                
-                $portResults = $portJobs | 
-                    Wait-Job | 
-                    Receive-Job | 
-                    Select-Object -Property * -ExcludeProperty PSComputerName, PSShowComputerName, RunspaceId
-                    
-                $result.Ports += $portResults
+                $portScanData = $portJobs.Invoke() # Run the jobs and store the data
+                $hostObject.Ports += $portScanData # Add this batch of ports to the host object
+                $portRunspacePool.Close() # Destroy the runspace to clean up garbage
             }
-            return $result
+            return $hostObject
         }
         
     }
     process {
 
+        # Chunk the number of hosts to run in parallel at a time
+        # Each host starts a PowerShell job and each job has a nested runspace to process ports in parallel
         for ($hostIndex = 0; $hostIndex -lt $TargetHost.Count; $hostIndex += $ParallelHosts) {
             $hostStart = $hostIndex
             $hostEnd = ($hostIndex + $ParallelHosts) - 1
-
             $TargetHost[$hostStart..$hostEnd] | ForEach-Object {
                 $target = $_
                 Write-Verbose "Starting scan of host: $target"
