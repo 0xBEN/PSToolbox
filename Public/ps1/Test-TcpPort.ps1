@@ -56,10 +56,16 @@ function Test-TcpPort {
                 )
 
                 $tcpClient = New-Object Net.Sockets.TcpClient
-                if ($tcpClient.ConnectAsync($runspaceTarget, $runspacePort).Wait($runspaceTimeout)) {
-                    $state = 'Open'
+                try {
+                    # Have to do it this way to support PowerShell Core TCP ConnectAsync method output
+                    if ($tcpClient.ConnectAsync($runspaceTarget, $runspacePort).Wait($runspaceTimeout)) {
+                        $state = 'Open'
+                    }
+                    else {
+                        throw 'Connection failed'
+                    }
                 }
-                else {
+                catch {
                     $state = 'Closed'
                 }
 
