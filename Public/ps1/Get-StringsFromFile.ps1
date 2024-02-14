@@ -3,7 +3,7 @@ function Get-StringsFromFile {
     [CmdletBinding()]
     [Alias('strings')]
     param (
-        [Parameter(Mandatory = $true, Position = 0)]
+        [Parameter(Mandatory = $true, Position = 0, ValueFromPipeline = $true)]
         [ValidateScript({
             $userInput = $_
             try {
