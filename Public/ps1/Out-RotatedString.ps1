@@ -8,44 +8,76 @@ function Out-RotatedString {
         $InputString,
 
         [Parameter(Mandatory = $true)]
-        [ValidateScript({$_ -gt 0 -and $_ -lt 25})]
+        [ValidateScript({$_ -ge 1 -and $_ -le 26})]
         [Byte]
-        $RotateBy
+        $RotateBy,
+
+        [Parameter()]
+        [Switch]
+        $Reverse
     )
     begin {
-        $RotateBy -= 1 # Since chars are 0 indexed
-        $lowerChars = 97..122 | ForEach-Object { [char][byte]$_ }
-        $lastLowerIndex = $lowerChars.IndexOf($lowerChars[-1])
-        $upperChars = $lowerChars | ForEach-Object { $_.ToString().ToUpper() }
-        $lastUpperIndex = $upperChars.IndexOf($upperChars[-1])
+        $lowerBytes = 91..122
+        $upperBytes = 65..90
     }
     process {
         $charArray = $InputString.ToCharArray()
         $rotatedChars = $charArray | ForEach-Object {
 
             if ([char]::IsLetter($_)) {
+            
                 if ([char]::IsUpper($_)) {
-                    $upperIndex = $upperChars.IndexOf($_)
-                    $rotationTotal = $upperIndex + $RotateBy
-                    if (($rotationTotal) -gt ($lastUpperIndex)) {
-                        $newChar = $upperChars[($rotationTotal - $lastUpperIndex)]
+                    [byte]$upperByte = $_
+                    if ($Reverse) {
+                        $rotationTotal = $upperByte - $RotateBy
+                        if ($rotationTotal -lt $upperBytes[0]) {
+                            $remainder = $upperBytes[0] - $rotationTotal - 1
+                            $byteOffset = $upperBytes[-1] - $remainder
+                            $returnByte = $byteOffset
+                        }
+                        else {
+                            $returnByte = $rotationTotal
+                        }
                     }
                     else {
-                        $newChar = $upperChars[$rotationTotal]
+                        $rotationTotal = $upperByte + $RotateBy
+                        if ($rotationTotal -gt $upperBytes[-1]) {
+                            $remainder = $rotationTotal - $upperBytes[-1]
+                            $byteOffset = $upperBytes[0] + $remainder - 1
+                            $returnByte = $byteOffset
+                        }
+                        else {
+                            $returnByte = $rotationTotal
+                        }
                     }
-                    $newChar
                 }
                 else {
-                    $lowerIndex = $lowerChars.IndexOf($_)
-                    $rotationTotal = $lowerIndex + $RotateBy
-                    if (($rotationTotal) -gt ($lastLowerIndex)) {
-                        $newChar = $lowerChars[($rotationTotal - $lastLowerIndex)]
+                    [byte]$lowerByte = $_
+                    if ($Reverse) {
+                        $rotationTotal = $lowerByte - $RotateBy
+                        if ($rotationTotal -lt $lowerBytes[0]) {
+                            $remainder = $lowerBytes[0] - $rotationTotal
+                            $byteOffset = $lowerBytes[0] + $remainder - 1
+                            $returnByte = $byteOffset
+                        }
+                        else {
+                            $returnByte = $rotationTotal
+                        }
                     }
                     else {
-                        $newChar = $lowerChars[$rotationTotal]
+                        $rotationTotal = $lowerByte + $RotateBy
+                        if ($rotationTotal -gt $lowerBytes[-1]) {
+                            $remainder = $rotationTotal - $lowerBytes[-1]
+                            $byteOffset = $rotationTotal - $remainder - 1
+                            $returnByte = $byteOffset
+                        }
+                        else {
+                            $returnByte = $rotationTotal
+                        }
                     }
-                    $newChar
                 }
+
+                [char]($returnByte)
 
             }
             else {
