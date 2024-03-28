@@ -14,7 +14,7 @@ function ConvertTo-Unicode {
       $string = $_
       $charArray = $string.ToCharArray()
       foreach ($char in $charArray) {
-        return '/u{0:x4}' -f [byte][char]$char
+        '\u{0:x4}' -f [byte][char]$char
       }
       
     }
