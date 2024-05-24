@@ -25,7 +25,7 @@ function ConvertTo-ByteArray {
             $byteArray = $_.ToCharArray() | ForEach-Object {
 
                 if ($Base -eq 2) { [byte][char]$_ }
-                else { '0x' + '{0:X}' -f [byte][char]$_ }
+                else { '{0:X}' -f [byte][char]$_ }
 
             }
             return $byteArray
