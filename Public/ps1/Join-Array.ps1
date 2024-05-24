@@ -6,7 +6,7 @@ function Join-Array {
         [PSObject[]]$InputArray,
 
         [Parameter()]
-        [ValidateNotNullOrEmpty()]
+        [AllowNull()]
         [String]$JoinString = ','
     )
     begin {
