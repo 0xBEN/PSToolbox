@@ -10,12 +10,12 @@ function Convert-StringToHash {
             Position = 0
         )]
         [ValidateNotNullOrEmpty()]
-        [string]
+        [String[]]
         $String,
 
         [Parameter(Position = 1)]
         [ValidateSet('MACTripleDES', 'MD5', 'RIPEMD160', 'SHA1', 'SHA256', 'SHA512')]
-        [string]
+        [String]
         $HashingAlgorithm = 'MD5'
 
     )
