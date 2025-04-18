@@ -6,8 +6,9 @@ $privateFunctionsPath = $PSScriptRoot + $directorySeparator + 'Private' + $direc
 $currentManifest = Test-ModuleManifest $moduleManifest
 
 $aliases = @()
-$publicFunctions = Get-ChildItem -Path $publicFunctionsPath | Where-Object {$_.Extension -eq '.ps1'}
-$privateFunctions = Get-ChildItem -Path $privateFunctionsPath | Where-Object {$_.Extension -eq '.ps1'}
+$ps1Files = Get-ChildItem -Path $PSScriptRoot -File -Recurse -Filter '*.ps1'
+$publicFunctions = $ps1Files | Where-Object {$_.Directory.FullName -eq $publicFunctionsPath}
+$privateFunctions = $ps1Files | Where-Object {$_.Directory.FullName -eq $privateFunctionsPath}
 $publicFunctions | ForEach-Object { . $_.FullName }
 $privateFunctions | ForEach-Object { . $_.FullName }
 
