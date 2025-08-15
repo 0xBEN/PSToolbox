@@ -1,3 +1,19 @@
+<#
+.SYNOPSIS
+  Convert a string of joined hexadeciaml bytes back to the default system encoding
+
+.EXAMPLE
+  ConvertFrom-HexString '68656c6c6f20776f726c6421'
+
+.EXAMPLE
+  echo -n 'hello world!' | xxd -p | ConvertFrom-HexString
+
+.INPUTS
+  System.String
+
+.OUTPUTS
+  System.String
+#>
 function ConvertFrom-HexString {
   [CmdletBinding()]
   param (
