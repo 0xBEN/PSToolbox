@@ -16,13 +16,13 @@ function Get-NetworkInfoIPv4 {
         Switch to output all IP addresses with type classification instead of summary info
     
     .EXAMPLE
-        Get-NetworkInfo -Subnet "192.168.1.0/24"
+        Get-NetworkInfoIPv4 -CIDRBlock "192.168.1.0/24"
     
     .EXAMPLE
-        Get-NetworkInfo -Subnet "10.0.0.0/28","172.16.0.0/22" -ListIPAddresses
+        Get-NetworkInfoIPv4 -CIDRBlock "10.0.0.0/28","172.16.0.0/22" -ListIPAddresses
     
     .EXAMPLE
-        "192.168.1.0/24","10.0.0.0/16" | Get-NetworkInfo
+        "192.168.1.0/24","10.0.0.0/16" | Get-NetworkInfoIPv4
     #>
     
     [CmdletBinding()]
@@ -51,7 +51,7 @@ function Get-NetworkInfoIPv4 {
             }
             return $true
         })]
-        [string[]]$Subnet,
+        [string[]]$CIDRBlock,
         [Parameter(Mandatory=$false)]
         [Switch]$ListIPAddresses
     )
@@ -61,12 +61,12 @@ function Get-NetworkInfoIPv4 {
     }
     
     process {
-        foreach ($subnetItem in $Subnet) {
-            [string]$inputIP = $subnetItem.Split(/)[0]
-            [byte]$cidr = $subnetItem.Split(/)[1]
+        foreach ($block in $CIDRBlock) {
+            $inputIP = $block.Split('/')[0]
+            $cidr = $block.Split('/')[1]
             
             $octets = $inputIP -split '\.'
-            $ipBinary = $octets | ForEach-Object { [Convert]::ToString([int]$_), 2).PadLeft(8, '0') }
+            $ipBinary = $octets | ForEach-Object { [Convert]::ToString([int]$_, 2).PadLeft(8, '0') }
             
             $maskBinary = ('1' * $cidr).PadRight(32, '0')
             $subnetMask = ""
@@ -134,18 +134,18 @@ function Get-NetworkInfoIPv4 {
             if ($ListIPAddresses) {
                 if ($cidr -eq 32) {
                     $allResults += [PSCustomObject]@{
-                        Subnet = $subnetItem
+                        Subnet = $block
                         IPAddress = $networkAddress
                         Type = 'host'
                     }
                 } elseif ($cidr -eq 31) {
                     $allResults += [PSCustomObject]@{
-                        Subnet = $subnetItem
+                        Subnet = $block
                         IPAddress = $networkAddress
                         Type = 'host'
                     }
                     $allResults += [PSCustomObject]@{
-                        Subnet = $subnetItem
+                        Subnet = $block
                         IPAddress = $broadcastAddress
                         Type = 'host'
                     }
@@ -155,7 +155,7 @@ function Get-NetworkInfoIPv4 {
                         $currentIP = "{0}.{1}.{2}.{3}" -f (($currentInt -shr 24) -band 0xFF), (($currentInt -shr 16) -band 0xFF), (($currentInt -shr 8) -band 0xFF), ($currentInt -band 0xFF)
                         $type = if ($currentInt -eq $networkInt) { 'network' } elseif ($currentInt -eq $broadcastInt) { 'broadcast' } else { 'host' }
                         $allResults += [PSCustomObject]@{
-                            Subnet = $subnetItem
+                            Subnet = $block
                             IPAddress = $currentIP
                             Type = $type
                         }
