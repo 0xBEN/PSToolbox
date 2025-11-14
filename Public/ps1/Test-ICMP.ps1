@@ -3,14 +3,6 @@ function Test-ICMP {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory, ValueFromPipeline)]
-        [ValidateScript({
-            try { [IPAddress]$_ | Out-Null }
-            catch {
-                try { Resolve-DnsName $_ -DnsOnly -ErrorAction Stop | Out-Null }
-                catch { throw "$_ is neither a valid IP nor valid hostname." }
-            }
-            $true
-        })]
         [string[]]$ComputerName,
 
         [ValidateRange(1,50)]
@@ -29,9 +21,31 @@ function Test-ICMP {
 
         $runspaceJobs = @()
     }
-
     process {
+
         foreach ($target in $ComputerName) {
+
+            try { 
+                [IPAddress]$_ | Out-Null
+            }
+            catch {
+                try { 
+
+                    if ($hostOS -eq 'Windows') {
+                        Resolve-DnsName $_ -DnsOnly -ErrorAction Stop | Out-Null 
+                    }
+                    else {
+                        $lookup = /bin/bash -c "host $target"
+                        if ($lookup -like '*NXDOMAIN*') {
+                            throw "NXDOMAIN"
+                        }
+                    }
+                }
+                catch { 
+                    Write-Error "$_ is neither a valid IP nor valid hostname." 
+                    return
+                }
+            }
 
             $ps = [powershell]::Create()
             $ps.RunspacePool = $pool
@@ -75,8 +89,8 @@ function Test-ICMP {
                 Handle = $ps.BeginInvoke()
             }
         }
-    }
 
+    }
     end {
 
         foreach ($job in $runspaceJobs) {
@@ -87,6 +101,6 @@ function Test-ICMP {
 
         $pool.Close()
         $pool.Dispose()
-        
+
     }
 }
