@@ -136,24 +136,24 @@ function Get-NetworkInfoIPv4 {
                     $allResults += [PSCustomObject]@{
                         Subnet = $block
                         IPAddress = $networkAddress
-                        Type = 'host'
+                        Type = 'Host'
                     }
                 } elseif ($cidr -eq 31) {
                     $allResults += [PSCustomObject]@{
                         Subnet = $block
                         IPAddress = $networkAddress
-                        Type = 'host'
+                        Type = 'Host'
                     }
                     $allResults += [PSCustomObject]@{
                         Subnet = $block
                         IPAddress = $broadcastAddress
-                        Type = 'host'
+                        Type = 'Host'
                     }
                 } else {
                     $currentInt = $networkInt
                     while ($currentInt -le $broadcastInt) {
                         $currentIP = "{0}.{1}.{2}.{3}" -f (($currentInt -shr 24) -band 0xFF), (($currentInt -shr 16) -band 0xFF), (($currentInt -shr 8) -band 0xFF), ($currentInt -band 0xFF)
-                        $type = if ($currentInt -eq $networkInt) { 'network' } elseif ($currentInt -eq $broadcastInt) { 'broadcast' } else { 'host' }
+                        $type = if ($currentInt -eq $networkInt) { 'Network' } elseif ($currentInt -eq $broadcastInt) { 'Broadcast' } else { 'Host' }
                         $allResults += [PSCustomObject]@{
                             Subnet = $block
                             IPAddress = $currentIP
